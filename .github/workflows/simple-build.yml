@@ -1,0 +1,81 @@
+name: build
+on:
+  - push
+  - pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install Spaces 🛸
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      
+      - name: Run Black Check
+        id: black-check
+        run: |
+          black --check . || (echo "BLACK_FAILED=true" >> $GITHUB_ENV && exit 1)
+        continue-on-error: true
+
+      - name: Run Mypy Check
+        id: mypy-check
+        run: |
+          mypy . || (echo "MYPY_FAILED=true" >> $GITHUB_ENV && exit 1)
+        continue-on-error: true
+
+      # Auto-fix Black formatting issues if it's a PR
+      - name: Fix Black formatting
+        if: |
+          github.event_name == 'pull_request' && 
+          env.BLACK_FAILED == 'true'
+        run: |
+          black .
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git commit -am "style: auto-format with Black"
+          git push
+
+      # Comment on PR if there are any issues
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && (env.BLACK_FAILED == 'true' || env.MYPY_FAILED == 'true')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let message = '### Code Quality Check Results\n\n';
+            if (process.env.BLACK_FAILED === 'true') {
+              message += '❌ Black formatting issues were found. I\'ve pushed a fix to this PR.\n\n';
+            }
+            if (process.env.MYPY_FAILED === 'true') {
+              message += '❌ Mypy type checking failed. Please fix the type errors.\n\n';
+            }
+            message += 'Please review the changes and fix any remaining issues.';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+
+      # Final status check
+      - name: Final Check Status
+        if: env.BLACK_FAILED == 'true' || env.MYPY_FAILED == 'true'
+        run: |
+          if [ "$BLACK_FAILED" = "true" ]; then
+            echo "Black check failed"
+          fi
+          if [ "$MYPY_FAILED" = "true" ]; then
+            echo "Mypy check failed"
+          fi
+          exit 1

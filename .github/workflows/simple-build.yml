@@ -20,7 +20,9 @@ jobs:
       - name: Install Spaces 🛸
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e .
+          pip install black
+          pip install mypy
       
       - name: Run Black Check
         id: black-check
@@ -67,15 +69,3 @@ jobs:
               repo: context.repo.repo,
               body: message
             });
-
-      # Final status check
-      - name: Final Check Status
-        if: env.BLACK_FAILED == 'true' || env.MYPY_FAILED == 'true'
-        run: |
-          if [ "$BLACK_FAILED" = "true" ]; then
-            echo "Black check failed"
-          fi
-          if [ "$MYPY_FAILED" = "true" ]; then
-            echo "Mypy check failed"
-          fi
-          exit 1

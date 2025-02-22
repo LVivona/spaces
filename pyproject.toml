@@ -16,7 +16,7 @@ pydantic = "2.10.6"
 GitPython = "3.1.44"
 typer = "0.15.1"
 passlib = "1.7.4"
-pydantic-settings = "2.7.1"
+pydantic-settings = "2.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"

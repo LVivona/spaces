@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spaces"
-version = "0.1.0"
+version = "0.0.1"
 description = "A dynamic Git repository space manager"
 authors = ["Luca Vivona <lucavivona01@gmail.com>"]
 license = "MIT"
@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["git", "docker", "container", "management", "self-host", "nginx"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
+python = ">=3.9,<3.10"
 fastapi = "0.115.8"
 uvicorn = "0.34.0"
 sqlmodel = "0.0.22"
@@ -21,8 +21,7 @@ pydantic-settings = "2.7.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
 black = "*"
-isort = "*"
-flake8 = "*"
+mypy = "*"
 
 [tool.poetry.scripts]
 spaces = "spaces.cli:app"
